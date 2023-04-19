@@ -5,7 +5,7 @@ import { path } from '../../../deps/deno/path.ts'
 import { swc } from "../../../deps/any/swc.ts"
 import type { SWC } from "../../../deps/any/swc.ts"
 
-import type { ImportExportGraphNode, ImportMetaAst, ExportDeclarationAst, ModuleSpecifier } from "./types.ts"
+import type { ImportExportGraphNode, ImportMetaAst, ExportDeclarationAst, ModuleSpecifier, ExportListAst } from "./types.ts"
 
 export async function parseImportExportStatements (source: SWC.Module, filepath: string): Promise<ImportExportGraphNode>
 {
@@ -78,6 +78,52 @@ export async function parseImportExportStatements (source: SWC.Module, filepath:
 			}
 			
 			iegn.imports.push(importAstNode)
+		}
+		// For export lists
+		else if (statement.type == 'ExportNamedDeclaration' && statement.source == undefined)
+		{
+			const loc =
+			{
+				start: statement.span.start,
+				end: statement.span.end,
+			}
+			
+			const exportAstNode: ExportListAst =
+			{
+				type : 'ExportListAst',
+				named : [],
+				loc
+			}
+			
+			for (const specifier of statement.specifiers)
+			{
+				if (specifier.type == 'ExportSpecifier')
+				{
+					if (exportAstNode.named == undefined)
+					{
+						exportAstNode.named = []
+					}
+					
+					if (specifier.exported)
+					{
+						exportAstNode.named.push(
+						{
+							name : specifier.orig.value,
+							alias : specifier.exported.value
+						})
+					}
+					else
+					{
+						exportAstNode.named.push(
+						{
+							name : specifier.orig.value,
+							alias : undefined
+						})
+					}
+				}
+			}
+			
+			iegn.exports.push(exportAstNode)
 		}
 	}
 	

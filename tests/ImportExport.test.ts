@@ -219,3 +219,57 @@ Deno.test('Import for side-effect', async () =>
 	})
 })
 
+
+// EXPORT LISTS
+//
+// export { name1, /* …, */ nameN };
+// export { variable1 as name1, variable2 as name2, /* …, */ nameN };
+// export { name1 as default /*, … */ };
+//
+// Unsupported:
+//   export { variable1 as "string name" };
+// Again, the parsing of this by TS is insane
+
+Deno.test('Export locally-defined symbols', async () =>
+{
+	const sourceCode = 'export { name1, name2 }'
+	const result = await parseImportExportStatementsFromString(sourceCode, 'whatever')
+	const exportAst = result.exports[0]
+
+	assert(exportAst.type == 'ExportListAst')
+	
+	assertEquals(exportAst.named,
+	[
+		{ name: 'name1', alias : undefined },
+		{ name: 'name2', alias : undefined },
+	])
+})
+
+Deno.test('Export locally-defined symbols with alias', async () =>
+{
+	const sourceCode = 'export { variable1 as name1, variable2 as name2 }'
+	const result = await parseImportExportStatementsFromString(sourceCode, 'whatever')
+	const exportAst = result.exports[0] as ExportListAst
+
+	assert(exportAst.type == 'ExportListAst')
+	
+	assertEquals(exportAst.named,
+	[
+		{ name: 'variable1', alias: 'name1' },
+		{ name: 'variable2', alias: 'name2' },
+	])
+})
+
+Deno.test('Export locally-defined symbol as default', async () =>
+{
+	const sourceCode = 'export { name1 as default }'
+	const result = await parseImportExportStatementsFromString(sourceCode, 'whatever')
+	const exportAst = result.exports[0] as ExportListAst
+
+	assert(exportAst.type == 'ExportListAst')
+	
+	assertEquals(exportAst.named,
+	[
+		{ name: 'name1', alias: 'default' },
+	])
+})
