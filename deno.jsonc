@@ -1,0 +1,28 @@
+{
+	"name": "@spiffre/magiked_swc",
+	"tasks":
+	{
+		"tc": "deno check ./mod.ts",
+		"test": "deno test --allow-all ./sources/ ./tests",
+		"testw": "deno test --allow-all --watch ./sources/ ./tests",
+		"npm": "deno run -A ./devtools/dnt.ts $(git describe --tags --abbrev=0)",
+		"link": "devtools/link.sh",
+		"unlink": "devtools/unlink.sh"
+	},
+	"lint":
+	{
+		"files":
+		{
+			"include":
+			[
+				"sources/"
+			]
+		},
+		
+		"rules":
+		{
+			"tags": [ "recommended" ],
+			"exclude": [ "ban-unused-ignore" ]
+		}
+	}
+}

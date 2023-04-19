@@ -1,0 +1,34 @@
+{
+	"version": "0.2.0",
+	"configurations":
+	[
+		{
+			// Beware that this VSCode extension: https://marketplace.visualstudio.com/items?itemName=denoland.vscode-deno
+			// must be installed, then initialized via "Deno: Initialize Workspace Configuration" from the Command Palette
+			"request": "launch",
+			"name": "Debug Test",
+			"type": "node",
+			"cwd": "${workspaceFolder}",
+			"runtimeExecutable": "deno",
+			"runtimeArgs": [
+				"test",
+				"--inspect-brk=127.0.0.1:9231",
+				"--allow-all"
+			],
+			"attachSimplePort": 9231,
+			"outputCapture": "std",
+			"args": []
+		},
+		
+		{
+			"type": "node",
+			"request": "launch",
+			"name": "Debug Node Tests",
+			"runtimeArgs": [
+				"--inspect-brk",
+				"${workspaceFolder}/npm/temp/test_runner.js",
+			],
+			"skipFiles": [ "<node_internals>/**" ]
+		}
+	]
+}
