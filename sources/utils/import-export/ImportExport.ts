@@ -215,6 +215,146 @@ export async function parseImportExportStatements (source: SWC.Module, filepath:
 			
 			iegn.exports.push(exportAstNode)
 		}
+		// For export declarations (default or not)
+		else if (statement.type == 'ExportDefaultDeclaration')
+		{
+			const isDefault = true
+			
+			const loc =
+			{
+				start: statement.span.start,
+				end: statement.span.end,
+			}
+			
+			let exportAst: ExportDeclarationAst | undefined
+			
+			const { decl : declaration } = statement
+
+			// If it's a function generator
+			if (declaration.type == 'FunctionExpression' && declaration.generator)
+			{
+				exportAst =
+				{
+					type : 'ExportDeclarationAst',
+					kind : 'function',
+					flavor : 'generator',
+					name : declaration.identifier?.value,
+					isDefault,
+					loc
+				}
+			}
+			// If it's a function
+			else if (declaration.type == 'FunctionExpression')
+			{
+				exportAst =
+				{
+					type : 'ExportDeclarationAst',
+					kind : 'function',
+					flavor : 'function',
+					name : declaration.identifier?.value,
+					isDefault,
+					loc
+				}
+			}
+			// If it's a class
+			else if (declaration.type == 'ClassExpression')
+			{
+				exportAst =
+				{
+					type : 'ExportDeclarationAst',
+					kind : 'class',
+					name : declaration.identifier?.value,
+					isDefault,
+					loc
+				}
+			}
+			
+			assert(exportAst)
+			iegn.exports.push(exportAst)
+		}
+		// For export declarations
+		else if (statement.type == 'ExportDeclaration')
+		{
+			const isDefault = false
+			
+			const loc =
+			{
+				start: statement.span.start,
+				end: statement.span.end,
+			}
+			
+			let exportAst: ExportDeclarationAst | undefined
+			
+			const { declaration } = statement
+			
+			// If it's a variable
+			if (declaration.type == 'VariableDeclaration')
+			{
+				const flavor = declaration.kind
+				const declarations: { name: string }[] = []
+				
+				for (const decl of declaration.declarations)
+				{
+					if (decl.id.type == 'Identifier')
+					{
+						declarations.push({ name : decl.id.value })
+					}
+					
+					// fixme: Many other cases to handle
+				}
+				
+				exportAst =
+				{
+					type : 'ExportDeclarationAst',
+					kind : 'variable',
+					flavor,
+					declarations,
+					isDefault,
+					loc
+				}
+			}
+			// If it's a function generator
+			else if (declaration.type == 'FunctionDeclaration' && declaration.generator)
+			{
+				exportAst =
+				{
+					type : 'ExportDeclarationAst',
+					kind : 'function',
+					flavor : 'generator',
+					name : declaration.identifier.value,
+					isDefault,
+					loc
+				}
+			}
+			// If it's a function
+			else if (declaration.type == 'FunctionDeclaration')
+			{
+				exportAst =
+				{
+					type : 'ExportDeclarationAst',
+					kind : 'function',
+					flavor : 'function',
+					name : declaration.identifier.value,
+					isDefault,
+					loc
+				}
+			}
+			// If it's a class
+			else if (declaration.type == 'ClassDeclaration')
+			{
+				exportAst =
+				{
+					type : 'ExportDeclarationAst',
+					kind : 'class',
+					name : declaration.identifier.value,
+					isDefault,
+					loc
+				}
+			}
+			
+			assert(exportAst)
+			iegn.exports.push(exportAst)
+		}
 	}
 	
 	return iegn

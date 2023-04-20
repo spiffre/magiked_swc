@@ -51,7 +51,7 @@ interface FunctionDeclarationAst extends MetaAst
 	flavor: 'function' | 'generator'
 	isDefault: boolean
 	
-	name: string
+	name?: string
 }
 
 interface ClassDeclarationAst extends MetaAst
