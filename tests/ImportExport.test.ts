@@ -273,3 +273,135 @@ Deno.test('Export locally-defined symbol as default', async () =>
 		{ name: 'name1', alias: 'default' },
 	])
 })
+
+
+
+// REEXPORT / AGGREGATION EXPORT STATEMENTS
+//
+// export * from "module-name";
+// export * as name1 from "module-name";
+// export { name1, /* …, */ nameN } from "module-name";
+// export { import1 as name1, import2 as name2, /* …, */ nameN } from "module-name";
+// export { default, /* …, */ } from "module-name";
+// export { default as name1 } from "module-name";
+
+Deno.test('Re-export all exports', async () =>
+{
+	const sourceCode = 'export * from "package-id"'
+	const result = await parseImportExportStatementsFromString(sourceCode, 'whatever')
+	const reexportAst = result.reexports[0]
+  
+	assertEquals(reexportAst.type, "ReexportMetaAst")
+	assertEquals(reexportAst.moduleSpecifier,
+	{
+		specifier : "package-id",
+		prefix : undefined,
+		isPackageId : true
+	})
+	assertEquals(reexportAst.named, undefined)
+	assertEquals(reexportAst.namespace, true)
+	assertEquals(reexportAst.namespaceAlias, undefined)
+})
+
+Deno.test('Re-export all exports as namespace', async () =>
+{
+	const sourceCode = 'export * as name1 from "package-id"'
+	const result = await parseImportExportStatementsFromString(sourceCode, 'whatever')
+	const reexportAst = result.reexports[0]
+
+	assertEquals(reexportAst.type, "ReexportMetaAst")
+	assertEquals(reexportAst.moduleSpecifier,
+	{
+		specifier : "package-id",
+		prefix : undefined,
+		isPackageId : true
+	})
+	assertEquals(reexportAst.named, undefined)
+	assertEquals(reexportAst.namespace, true)
+	assertEquals(reexportAst.namespaceAlias, "name1")
+})
+
+Deno.test('Re-export named export', async () =>
+{
+	const sourceCode = 'export { name1 } from "package-id"'
+	const result = await parseImportExportStatementsFromString(sourceCode, 'whatever')
+	const reexportAst = result.reexports[0]
+
+	assertEquals(reexportAst.type, "ReexportMetaAst")
+	assertEquals(reexportAst.moduleSpecifier,
+	{
+		specifier : "package-id",
+		prefix : undefined,
+		isPackageId : true
+	})
+	assertEquals(reexportAst.named,
+	[
+		{ name: "name1", alias: undefined }
+	])
+	assertEquals(reexportAst.namespace, undefined)
+	assertEquals(reexportAst.namespaceAlias, undefined)
+})
+
+Deno.test('Re-export multiple named exports with alias', async () =>
+{
+	const sourceCode = 'export { import1 as name1, import2 as name2 } from "package-id"'
+	const result = await parseImportExportStatementsFromString(sourceCode, 'whatever')
+	const reexportAst = result.reexports[0]
+
+	assertEquals(reexportAst.type, "ReexportMetaAst")
+	assertEquals(reexportAst.moduleSpecifier,
+	{
+		specifier : "package-id",
+		prefix : undefined,
+		isPackageId : true
+	})
+	assertEquals(reexportAst.named,
+	[
+		{ name: "import1", alias: "name1" },
+		{ name: "import2", alias: "name2" },
+	])
+	assertEquals(reexportAst.namespace, undefined)
+	assertEquals(reexportAst.namespaceAlias, undefined)
+})
+
+Deno.test('Re-export default export as named export', async () =>
+{
+	const sourceCode = 'export { default } from "module-name"'
+	const result = await parseImportExportStatementsFromString(sourceCode, 'whatever')
+	const reexportAst = result.reexports[0]
+
+	assertEquals(reexportAst.type, "ReexportMetaAst")
+	assertEquals(reexportAst.moduleSpecifier,
+	{
+		specifier : "module-name",
+		prefix : undefined,
+		isPackageId : true 
+	})
+	assertEquals(reexportAst.named,
+	[
+		{ name: "default", alias: undefined }
+	])
+	assertEquals(reexportAst.namespace, undefined)
+	assertEquals(reexportAst.namespaceAlias, undefined)
+})
+
+Deno.test('Re-export default export as named export with alias', async () =>
+{
+	const sourceCode = 'export { default as name1 } from "module-name"'
+	const result = await parseImportExportStatementsFromString(sourceCode, 'whatever')
+	const reexportAst = result.reexports[0]
+
+	assertEquals(reexportAst.type, "ReexportMetaAst")
+	assertEquals(reexportAst.moduleSpecifier,
+	{
+		specifier: "module-name",
+		prefix: undefined,
+		isPackageId: true
+	})
+	assertEquals(reexportAst.named,
+	[
+		{ name: "default", alias: "name1" }
+	])
+	assertEquals(reexportAst.namespace, undefined)
+	assertEquals(reexportAst.namespaceAlias, undefined)
+})

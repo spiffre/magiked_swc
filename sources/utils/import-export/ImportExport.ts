@@ -5,7 +5,7 @@ import { path } from '../../../deps/deno/path.ts'
 import { swc } from "../../../deps/any/swc.ts"
 import type { SWC } from "../../../deps/any/swc.ts"
 
-import type { ImportExportGraphNode, ImportMetaAst, ExportDeclarationAst, ModuleSpecifier, ExportListAst } from "./types.ts"
+import type { ImportExportGraphNode, ImportMetaAst, ExportDeclarationAst, ModuleSpecifier, ExportListAst, ReexportMetaAst } from "./types.ts"
 
 export async function parseImportExportStatements (source: SWC.Module, filepath: string): Promise<ImportExportGraphNode>
 {
@@ -79,6 +79,102 @@ export async function parseImportExportStatements (source: SWC.Module, filepath:
 			
 			iegn.imports.push(importAstNode)
 		}
+		// For re-exports aka aggregation exports: export * from "module-name"
+		else if (statement.type == 'ExportAllDeclaration')
+		{
+			const moduleSpecifier = await parseModuleSpecifier(statement.source, dirname)
+			
+			const loc =
+			{
+				start : statement.span.start,
+				end : statement.span.end,
+			}
+			
+			const exportAstNode: ReexportMetaAst =
+			{
+				type : 'ReexportMetaAst',
+				namespace : true,
+				namespaceAlias : undefined,
+				moduleSpecifier,
+				loc
+			}
+			
+			iegn.reexports.push(exportAstNode)
+		}
+		// For re-exports aka aggregation exports: export * as name1 from "module-name"
+		else if (statement.type == 'ExportNamedDeclaration' && statement.source && statement.specifiers[0].type == 'ExportNamespaceSpecifier')
+		{
+			// In the case of a namespaced export, we know a source is specified
+			assert(statement.source)
+			
+			const moduleSpecifier = await parseModuleSpecifier(statement.source, dirname)
+			
+			const loc =
+			{
+				start : statement.span.start,
+				end : statement.span.end,
+			}
+			
+			const exportAstNode: ReexportMetaAst =
+			{
+				type : 'ReexportMetaAst',
+				namespace : true,
+				namespaceAlias : statement.specifiers[0].name.value,
+				moduleSpecifier,
+				loc
+			}
+			
+			iegn.reexports.push(exportAstNode)
+		}
+		// For re-exports aka aggregation exports: export { name1, /* …, */ nameN } from "module-name";
+		else if (statement.type == 'ExportNamedDeclaration' && statement.source && statement.specifiers[0].type == 'ExportSpecifier')
+		{
+			// In the case of a namespaced export, we know a source is specified
+			assert(statement.source)
+			
+			const moduleSpecifier = await parseModuleSpecifier(statement.source, dirname)
+			
+			const loc =
+			{
+				start : statement.span.start,
+				end : statement.span.end,
+			}
+			
+			const exportAstNode: ReexportMetaAst =
+			{
+				type : 'ReexportMetaAst',
+				namespace : undefined,  // fixme: Switch this to false
+				namespaceAlias : undefined,
+				named : [],
+				moduleSpecifier,
+				loc
+			}
+			
+			for (const specifier of statement.specifiers)
+			{
+				assert(specifier.type == 'ExportSpecifier')
+				assert(exportAstNode.named)
+				
+				if (specifier.exported)
+				{
+					exportAstNode.named.push(
+					{
+						name : specifier.orig.value,
+						alias : specifier.exported.value
+					})
+				}
+				else
+				{
+					exportAstNode.named.push(
+					{
+						name : specifier.orig.value,
+						alias : undefined
+					})
+				}
+			}
+			
+			iegn.reexports.push(exportAstNode)
+		}
 		// For export lists
 		else if (statement.type == 'ExportNamedDeclaration' && statement.source == undefined)
 		{
@@ -97,29 +193,23 @@ export async function parseImportExportStatements (source: SWC.Module, filepath:
 			
 			for (const specifier of statement.specifiers)
 			{
-				if (specifier.type == 'ExportSpecifier')
+				assert(specifier.type == 'ExportSpecifier')
+				
+				if (specifier.exported)
 				{
-					if (exportAstNode.named == undefined)
+					exportAstNode.named.push(
 					{
-						exportAstNode.named = []
-					}
-					
-					if (specifier.exported)
+						name : specifier.orig.value,
+						alias : specifier.exported.value
+					})
+				}
+				else
+				{
+					exportAstNode.named.push(
 					{
-						exportAstNode.named.push(
-						{
-							name : specifier.orig.value,
-							alias : specifier.exported.value
-						})
-					}
-					else
-					{
-						exportAstNode.named.push(
-						{
-							name : specifier.orig.value,
-							alias : undefined
-						})
-					}
+						name : specifier.orig.value,
+						alias : undefined
+					})
 				}
 			}
 			
