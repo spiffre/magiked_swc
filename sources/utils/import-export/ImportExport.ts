@@ -38,7 +38,8 @@ export async function parseImportExportStatements (source: SWC.Module, filepath:
 			{
 				type : 'ImportMetaAst',
 				moduleSpecifier,
-				loc
+				loc,
+				isType : importDecl.typeOnly
 			}
 			
 			for (const specifier of importDecl.specifiers)
@@ -63,7 +64,8 @@ export async function parseImportExportStatements (source: SWC.Module, filepath:
 						importAstNode.named.push(
 						{
 							name : specifier.imported.value,
-							alias : specifier.local.value
+							alias : specifier.local.value,
+							isType : specifier.isTypeOnly
 						})
 					}
 					else
@@ -71,7 +73,8 @@ export async function parseImportExportStatements (source: SWC.Module, filepath:
 						importAstNode.named.push(
 						{
 							name : specifier.local.value,
-							alias : undefined
+							alias : undefined,
+							isType : specifier.isTypeOnly
 						})
 					}
 				}

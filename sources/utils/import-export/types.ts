@@ -26,9 +26,11 @@ export interface ImportMetaAst extends MetaAst
 	named?:
 	{
 		name: string
+		isType: boolean
 		alias?: string
 	}[]
 	
+	isType: boolean
 	moduleSpecifier: ModuleSpecifier
 }
 
