@@ -67,7 +67,7 @@ Deno.test('Import named export', async () =>
 	assert(importAst)
 	assertEquals(importAst.default, undefined)
 	assertEquals(importAst.namespace, undefined)
-	assertEquals(importAst.named, [{ name : 'export1', alias : undefined }])
+	assertEquals(importAst.named, [{ name : 'export1', isType : false, alias : undefined }])
 	assertEquals(importAst.moduleSpecifier,
 	{
 		specifier: 'module',
@@ -86,7 +86,7 @@ Deno.test('Import named export with alias', async () =>
 	assert(importAst)
 	assertEquals(importAst.default, undefined)
 	assertEquals(importAst.namespace, undefined)
-	assertEquals(importAst.named, [{ name : 'export1', alias : 'alias1' }])
+	assertEquals(importAst.named, [{ name : 'export1', isType : false, alias : 'alias1' }])
 	assertEquals(importAst.moduleSpecifier,
 	{
 		specifier: 'module',
@@ -107,7 +107,7 @@ Deno.test('import default as named export', async () =>
 	assertEquals(importAst.namespace, undefined)
 	assertEquals(importAst.named,
 	[
-		{ name : 'default', alias : 'alias' },
+		{ name : 'default', isType : false, alias : 'alias' },
 	])
 	assertEquals(importAst.moduleSpecifier,
 	{
@@ -129,8 +129,8 @@ Deno.test('import multiple named exports', async () =>
 	assertEquals(importAst.namespace, undefined)
 	assertEquals(importAst.named,
 	[
-		{ name : 'export1', alias : undefined },
-		{ name : 'export2', alias : undefined },
+		{ name : 'export1', isType : false, alias : undefined },
+		{ name : 'export2', isType : false, alias : undefined },
 	])
 	assertEquals(importAst.moduleSpecifier,
 	{
@@ -152,8 +152,8 @@ Deno.test('import multiple named exports with alias', async () =>
 	assertEquals(importAst.namespace, undefined)
 	assertEquals(importAst.named,
 	[
-		{ name : 'export1', alias : undefined },
-		{ name : 'export2', alias : 'alias2' },
+		{ name : 'export1', isType : false, alias : undefined },
+		{ name : 'export2', isType : false, alias : 'alias2' },
 	])
 	assertEquals(importAst.moduleSpecifier,
 	{
@@ -173,7 +173,7 @@ Deno.test('Import default export and named export', async () =>
 	assert(importAst)
 	assertEquals(importAst.default, 'defaultExport')
 	assertEquals(importAst.namespace, undefined)
-	assertEquals(importAst.named, [{ name : 'export1', alias : undefined }])
+	assertEquals(importAst.named, [{ name : 'export1', isType : false, alias : undefined }])
 	assertEquals(importAst.moduleSpecifier,
 	{
 		specifier: 'module',
