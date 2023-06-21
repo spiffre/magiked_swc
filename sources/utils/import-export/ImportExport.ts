@@ -218,7 +218,7 @@ export async function parseImportExportStatements (source: SWC.Module, filepath:
 			
 			iegn.exports.push(exportAstNode)
 		}
-		// For export declarations (default or not)
+		// For default export declarations
 		else if (statement.type == 'ExportDefaultDeclaration')
 		{
 			const isDefault = true
@@ -268,6 +268,17 @@ export async function parseImportExportStatements (source: SWC.Module, filepath:
 					kind : 'class',
 					name : declaration.identifier?.value,
 					isDefault,
+					loc
+				}
+			}
+			// If it's an interface
+			else if (declaration.type == 'TsInterfaceDeclaration')
+			{
+				exportAst =
+				{
+					type : 'InterfaceDeclarationAst',
+					name : declaration.id.value,
+					isDefault,  // fixme: does it make sense ?
 					loc
 				}
 			}
@@ -350,6 +361,50 @@ export async function parseImportExportStatements (source: SWC.Module, filepath:
 					type : 'ExportDeclarationAst',
 					kind : 'class',
 					name : declaration.identifier.value,
+					isDefault,
+					loc
+				}
+			}
+			// If it's an interface
+			else if (declaration.type == 'TsInterfaceDeclaration')
+			{
+				exportAst =
+				{
+					type : 'InterfaceDeclarationAst',
+					name : declaration.id.value,
+					isDefault,  // fixme: does it make sense ?
+					loc
+				}
+			}
+			// If it's a type
+			else if (declaration.type == 'TsTypeAliasDeclaration')
+			{
+				exportAst =
+				{
+					type : 'TypeDeclarationAst',
+					name : declaration.id.value,
+					isDefault,
+					loc
+				}
+			}
+			// If it's an enum
+			else if (declaration.type == 'TsEnumDeclaration')
+			{
+				exportAst =
+				{
+					type : 'EnumDeclarationAst',
+					name : declaration.id.value,
+					isDefault,
+					loc
+				}
+			}
+			// If it's a namespace/module
+			else if (declaration.type == 'TsModuleDeclaration')
+			{
+				exportAst =
+				{
+					type : 'ModuleDeclarationAst',
+					name : declaration.id.value,
 					isDefault,
 					loc
 				}

@@ -94,3 +94,78 @@ Deno.test('Import named type export 2 (mixed with value export)', async () =>
 		isPackageId: true,
 	})
 })
+
+
+
+// TYPESCRIPT EXPORT STATEMENTS
+
+// export interface Whatever {}"
+// export type Whatever = {}"
+// export enum Whatever {}"
+// export namespace Whatever {}"
+
+Deno.test('Export interface', async () =>
+{
+	const sourceCode = 'export interface Whatever {}'
+	const result = await parseImportExportStatementsFromString(sourceCode, 'whatever')
+	
+	const exportAst = result.exports[0]
+
+	assert(exportAst.type == "InterfaceDeclarationAst")
+	assertEquals(exportAst.name, "Whatever")
+	assertEquals(exportAst.isDefault, false)
+})
+
+Deno.test('Export type', async () =>
+{
+	const sourceCode = 'export type Whatever = {}'
+	const result = await parseImportExportStatementsFromString(sourceCode, 'whatever')
+	
+	const exportAst = result.exports[0]
+
+	assert(exportAst.type == "TypeDeclarationAst")
+	assertEquals(exportAst.name, "Whatever")
+	assertEquals(exportAst.isDefault, false)
+})
+
+Deno.test('Export enum', async () =>
+{
+	const sourceCode = 'export enum Whatever {}'
+	const result = await parseImportExportStatementsFromString(sourceCode, 'whatever')
+	
+	const exportAst = result.exports[0]
+
+	assert(exportAst.type == "EnumDeclarationAst")
+	assertEquals(exportAst.name, "Whatever")
+	assertEquals(exportAst.isDefault, false)
+})
+
+Deno.test('Export namespace', async () =>
+{
+	const sourceCode = 'export namespace Whatever {}'
+	const result = await parseImportExportStatementsFromString(sourceCode, 'whatever')
+	
+	const exportAst = result.exports[0]
+
+	assert(exportAst.type == "ModuleDeclarationAst")
+	assertEquals(exportAst.name, "Whatever")
+	assertEquals(exportAst.isDefault, false)
+})
+
+
+// TYPESCRIPT DEFAULT EXPORT STATEMENTS
+
+// export default interface Whatever {}"
+// Note that enums and types cannot be default-exported (apparently)
+
+Deno.test('Export default interface', async () =>
+{
+	const sourceCode = 'export default interface Whatever {}'
+	const result = await parseImportExportStatementsFromString(sourceCode, 'whatever')
+	
+	const exportAst = result.exports[0]
+
+	assert(exportAst.type == "InterfaceDeclarationAst")
+	assertEquals(exportAst.name, "Whatever")
+	assertEquals(exportAst.isDefault, true)
+})
